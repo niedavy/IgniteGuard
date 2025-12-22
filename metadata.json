@@ -1,0 +1,8 @@
+{
+  "name": "IgniteGuard - Smart Fire Monitoring System",
+  "description": "A high-performance web-based NVR interface for real-time fire monitoring, featuring multi-view live streaming, AI-driven fire/smoke detection, and rapid incident response tools based on the VIVOTEK NVR design language.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
