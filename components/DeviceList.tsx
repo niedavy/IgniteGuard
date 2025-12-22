@@ -84,8 +84,9 @@ const DeviceList: React.FC<DeviceListProps> = ({
                 )}
 
                 <div className="flex-1 flex items-center" onClick={() => isPlaybackMode ? onSelectScene?.(scene) : toggleGroup(scene.id)}>
-                  <Folder size={14} className={`mx-1.5 ${selectionStatus === 'all' ? 'text-blue-400' : 'text-gray-500'} fill-blue-400/10`} />
-                  <span className={`text-[11px] font-medium flex-1 ${selectionStatus === 'all' ? 'text-blue-100' : ''}`}>{scene.name}</span>
+                  {/* Folder icon and Scene name now use constant blue colors to distinguish from cameras */}
+                  <Folder size={14} className="mx-1.5 text-blue-400 fill-blue-400/20" />
+                  <span className="text-[11px] font-bold flex-1 text-blue-100">{scene.name}</span>
                   <span className="text-[9px] text-gray-600 mr-1 opacity-0 group-hover:opacity-100 transition-opacity">({scene.cameraIds.length})</span>
                 </div>
               </div>

@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 // Added CameraType to the import list to fix the reference error in the visibleCameras useMemo.
 import { Camera, LayoutType, CameraStatus, CameraType } from '../types';
@@ -100,21 +101,6 @@ const CameraFeed: React.FC<{ camera: Camera; isSelected: boolean; onClick: () =>
                   <span>Smoke: {camera.smokeLevel}%</span>
               </div>
           )}
-        </div>
-      )}
-
-      {/* Status Tags */}
-      {!camera.id.startsWith('filler') && (
-        <div className="absolute top-2 right-2 flex space-x-1 z-30">
-          {camera.status === CameraStatus.RECORDING && (
-            <div className="bg-red-600/90 text-white text-[8px] px-1 rounded flex items-center space-x-1">
-              <div className="w-1 h-1 bg-white rounded-full animate-ping"></div>
-              <span>REC</span>
-            </div>
-          )}
-          <div className="bg-blue-600/90 text-white text-[8px] px-1 rounded flex items-center">
-            VCA
-          </div>
         </div>
       )}
     </div>

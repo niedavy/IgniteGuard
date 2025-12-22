@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DeviceList from './components/DeviceList';
@@ -39,7 +39,6 @@ const App: React.FC = () => {
   const [scenes, setScenes] = useState<Scene[]>(INITIAL_SCENES);
   const [selectedCameraId, setSelectedCameraId] = useState<string>('1');
   
-  // Requirement: Default to all selected in Playback/Gallery mode
   const [selectedSecondaryIds, setSelectedSecondaryIds] = useState<string[]>(() => INITIAL_CAMERAS.map(c => c.id));
   
   const [layout, setLayout] = useState<LayoutType>('2x2');
@@ -49,16 +48,47 @@ const App: React.FC = () => {
   const [isEmergencyMode, setIsEmergencyMode] = useState(false);
 
   const alertCameras = useMemo(() => cameras.filter(c => c.status === CameraStatus.ALERT), [cameras]);
-
   const selectedCamera = cameras.find(c => c.id === (currentView === 'monitor' ? selectedCameraId : selectedSecondaryIds[0])) || cameras[0];
+
+  const getPageSize = (l: LayoutType) => {
+    switch (l) {
+      case '1x1': return 1;
+      case '2x2': return 4;
+      case '3x3': return 9;
+      case '1P+3': return 4;
+      default: return 4;
+    }
+  };
 
   const handleSelect = (id: string) => {
     if (currentView === 'monitor') {
       setSelectedCameraId(id);
+      
+      const cameraIndex = cameras.findIndex(c => c.id === id);
+      if (cameraIndex !== -1) {
+        const pageSize = getPageSize(layout);
+        const targetPage = Math.floor(cameraIndex / pageSize) + 1;
+        if (targetPage !== currentPage) {
+          setCurrentPage(targetPage);
+        }
+      }
     } else {
       setSelectedSecondaryIds(prev => 
         prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
       );
+    }
+  };
+
+  // Requirement: Change layout while maintaining visibility of the selected camera
+  const handleLayoutChange = (newLayout: LayoutType) => {
+    setLayout(newLayout);
+    if (currentView === 'monitor') {
+      const cameraIndex = cameras.findIndex(c => c.id === selectedCameraId);
+      if (cameraIndex !== -1) {
+        const pageSize = getPageSize(newLayout);
+        const targetPage = Math.floor(cameraIndex / pageSize) + 1;
+        setCurrentPage(targetPage);
+      }
     }
   };
 
@@ -69,10 +99,8 @@ const App: React.FC = () => {
     const allSelected = sceneCameraIds.every(id => selectedSecondaryIds.includes(id));
 
     if (allSelected) {
-      // Unselect all in scene
       setSelectedSecondaryIds(prev => prev.filter(id => !sceneCameraIds.includes(id)));
     } else {
-      // Select all in scene (adding missing ones)
       setSelectedSecondaryIds(prev => {
         const newIds = [...prev];
         sceneCameraIds.forEach(id => {
@@ -93,7 +121,7 @@ const App: React.FC = () => {
             selectedId={selectedCameraId}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
-            onLayoutChange={setLayout}
+            onLayoutChange={handleLayoutChange}
             onSelect={setSelectedCameraId}
           />
         );
@@ -152,7 +180,7 @@ const App: React.FC = () => {
               camera={selectedCamera} 
               layout={layout} 
               viewMode={currentView === 'monitor' ? 'monitor' : 'playback'}
-              onLayoutChange={setLayout}
+              onLayoutChange={handleLayoutChange}
             />
           </div>
         </div>
