@@ -2,7 +2,7 @@
 import React from 'react';
 import { Camera, CameraStatus } from '../types';
 import Timeline from './Timeline';
-import { History, AlertCircle, Play, Video } from 'lucide-react';
+import { AlertCircle, Play, Video } from 'lucide-react';
 
 interface PlaybackViewProps {
   cameras: Camera[];
@@ -54,12 +54,6 @@ const PlaybackView: React.FC<PlaybackViewProps> = ({ cameras, selectedIds }) => 
                     </div>
                 )}
                 
-                {/* Visual Cue for Playback Mode */}
-                <div className="absolute bottom-2 left-2 flex items-center space-x-2 bg-blue-600/90 text-white px-2 py-0.5 rounded text-[9px] font-bold z-10 shadow-lg">
-                   <History size={12} />
-                   <span className="tracking-tighter uppercase">Incident Playback</span>
-                </div>
-
                 {/* Timestamp Overlay */}
                 <div className="absolute bottom-2 right-2 font-mono text-[9px] text-white/50 bg-black/40 px-2 rounded border border-white/5">
                    2024-05-20 10:52:45

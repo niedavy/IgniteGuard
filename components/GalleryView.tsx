@@ -37,16 +37,7 @@ const EventCard = React.memo(({ event }: { event: FireEvent }) => (
         alt={event.cameraName}
         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
       />
-      <div className="absolute top-2 left-2 flex gap-1">
-        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm ${
-          event.severity === 'CRITICAL' ? 'bg-red-600 text-white' : 'bg-orange-600 text-white'
-        }`}>
-          {event.severity}
-        </span>
-        <span className="bg-black/60 backdrop-blur-sm text-white text-[8px] px-1.5 py-0.5 rounded border border-white/10">
-          {event.type}
-        </span>
-      </div>
+      
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-2 translate-y-full group-hover:translate-y-0 transition-transform">
         <button className="w-full bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-bold py-1 rounded flex items-center justify-center gap-1">
           <Maximize2 size={10} /> VIEW FOOTAGE
@@ -186,18 +177,7 @@ const GalleryView: React.FC<GalleryViewProps> = ({ cameras, selectedCameraIds })
       {/* Gallery Stats Bar */}
       <div className="h-8 bg-[#111] border-t border-[#333] flex items-center px-4 justify-between shrink-0">
         <div className="flex space-x-4">
-          <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
-            <div className="w-1.5 h-1.5 bg-red-600 rounded-full"></div>
-            <span>Flame: {Math.round(filteredEvents.length * 0.3)}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
-            <div className="w-1.5 h-1.5 bg-orange-600 rounded-full"></div>
-            <span>Smoke: {Math.round(filteredEvents.length * 0.5)}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[9px] text-gray-500">
-            <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-            <span>Heat: {Math.round(filteredEvents.length * 0.2)}</span>
-          </div>
+           {/* Labels removed per request */}
         </div>
         <div className="text-[9px] text-gray-600 uppercase font-bold">
           AI Confidence: High (`{'>'}`85%)
