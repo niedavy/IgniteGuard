@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { Camera, LayoutType, ViewType } from '../types';
-import { ChevronDown, Shield, Trash2, Sliders, Search, ShieldAlert } from 'lucide-react';
+import { Camera, LayoutType, ViewType, CameraStatus } from '../types';
+import { ChevronDown, Search, ShieldAlert, Info, Cpu, Maximize } from 'lucide-react';
 import Calendar from './Calendar';
+import { getCameraTypeIcon } from '../constants';
 
 interface ControlPanelProps {
   camera: Camera;
@@ -13,10 +14,13 @@ interface ControlPanelProps {
   onDateSelect: (date: number | null) => void;
 }
 
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+const Section: React.FC<{ title: string; children: React.ReactNode; icon?: React.ReactNode }> = ({ title, children, icon }) => (
   <div className="border-b border-[#333]">
     <div className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-[#252525] group">
-      <span className="text-[11px] font-bold text-gray-400 group-hover:text-white uppercase tracking-tighter">{title}</span>
+      <div className="flex items-center space-x-2">
+        {icon && <span className="text-gray-500 group-hover:text-blue-400">{icon}</span>}
+        <span className="text-[11px] font-bold text-gray-400 group-hover:text-white uppercase tracking-tighter">{title}</span>
+      </div>
       <ChevronDown size={14} className="text-gray-600" />
     </div>
     <div className="px-3 pb-3">
@@ -25,53 +29,63 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
   </div>
 );
 
+const InfoRow: React.FC<{ label: string; value: string | number | React.ReactNode; icon?: React.ReactNode }> = ({ label, value, icon }) => (
+  <div className="flex justify-between items-center py-1.5 group/row">
+    <div className="flex items-center space-x-2">
+      {icon && <span className="text-gray-600 group-hover/row:text-gray-400">{icon}</span>}
+      <span className="text-gray-500 text-[10px] uppercase font-medium">{label}</span>
+    </div>
+    <span className="text-gray-200 font-mono text-[11px]">{value}</span>
+  </div>
+);
+
 const ControlPanel: React.FC<ControlPanelProps> = ({ camera, layout, viewMode = 'monitor', onLayoutChange, selectedDate, onDateSelect }) => {
   return (
-    <div className="flex flex-col h-full text-[11px] select-none">
-      <div className="flex bg-[#252525] p-1 gap-1">
-        <button className={`flex-1 py-1 rounded-sm font-medium transition-colors ${viewMode === 'monitor' ? 'bg-[#3b82f6] text-white' : 'text-gray-400'}`}>
-          {viewMode === 'monitor' ? 'Control' : 'Search'}
-        </button>
-        <button className="flex-1 py-1 text-gray-400 hover:text-white rounded-sm font-medium">
-          Settings
-        </button>
+    <div className="flex flex-col h-full text-[11px] select-none bg-[#1a1a1a]">
+      {/* Top Header Label */}
+      <div className="h-10 border-b border-[#333] flex items-center px-4 bg-[#1f1f1f]">
+        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+          {viewMode === 'monitor' ? 'Camera Analytics' : 'Incident Search'}
+        </span>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {viewMode === 'monitor' ? (
           <>
-            <Section title={`Live Camera ${camera.id.padStart(2, '0')}`}>
-              <div className="space-y-2 mt-1">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">IP Address</span>
-                  <span className="text-gray-300">{camera.ip}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Model</span>
-                  <span className="text-gray-300">{camera.model}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Resolution</span>
-                  <span className="text-gray-300">{camera.resolution}</span>
-                </div>
-                
-                <div className="flex gap-2 pt-2">
-                  <button className="flex-1 bg-red-600 hover:bg-red-700 py-1.5 rounded flex items-center justify-center border border-red-700">
-                    <Trash2 size={14} />
-                    <span className="ml-2 font-bold text-[10px] uppercase">Remove</span>
-                  </button>
-                </div>
+            <Section title="General Information" icon={<Info size={14} />}>
+              <div className="mt-2 space-y-1">
+                <InfoRow label="Device Name" value={camera.name} />
+                <InfoRow label="Status" value={
+                  <div className="flex items-center space-x-1.5">
+                    <div className={`w-1.5 h-1.5 rounded-full ${
+                      camera.status === CameraStatus.RECORDING ? 'bg-red-500 animate-pulse' : 
+                      camera.status === CameraStatus.ALERT ? 'bg-yellow-500' : 
+                      camera.status === CameraStatus.DISCONNECTED ? 'bg-gray-600' : 'bg-green-500'
+                    }`}></div>
+                    <span className={
+                      camera.status === CameraStatus.ALERT ? 'text-yellow-500' : 
+                      camera.status === CameraStatus.RECORDING ? 'text-red-500' : 'text-gray-400'
+                    }>
+                      {camera.status}
+                    </span>
+                  </div>
+                } />
+                <InfoRow label="Type" value={
+                  <div className="flex items-center space-x-1">
+                    {getCameraTypeIcon(camera.type)}
+                    <span className="capitalize">{camera.type.toLowerCase()}</span>
+                  </div>
+                } />
               </div>
             </Section>
 
-            <Section title="Image Adjust">
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center space-x-2">
-                    <Sliders size={14} className="text-gray-500" />
-                    <div className="flex-1 h-[2px] bg-[#333] relative">
-                        <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full border border-white"></div>
-                    </div>
-                </div>
+            <Section title="Hardware & Network" icon={<Cpu size={14} />}>
+              <div className="mt-2 space-y-1">
+                <InfoRow label="IP Address" value={camera.ip} />
+                <InfoRow label="Hardware ID" value={camera.model} />
+                <InfoRow label="Resolution" value={camera.resolution} icon={<Maximize size={12} />} />
+                <InfoRow label="Bitrate" value="4.2 Mbps" />
+                <InfoRow label="Frame Rate" value="30 FPS" />
               </div>
             </Section>
           </>
@@ -116,13 +130,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ camera, layout, viewMode = 
             </Section>
           </>
         )}
-      </div>
-
-      <div className="p-3 border-t border-[#333] mt-auto">
-        <div className="flex items-center space-x-2 p-2 bg-red-900/20 rounded border border-red-500/20">
-          <Shield size={14} className="text-red-500" />
-          <span className="text-[10px] text-red-400 font-bold uppercase tracking-tight">AI Fire Forensic Mode</span>
-        </div>
       </div>
     </div>
   );
