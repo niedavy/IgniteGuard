@@ -2,15 +2,17 @@
 import React from 'react';
 import { Camera, CameraStatus } from '../types';
 import Timeline from './Timeline';
-import { AlertCircle, Play, Video } from 'lucide-react';
+import { AlertCircle, Video } from 'lucide-react';
 
 interface PlaybackViewProps {
   cameras: Camera[];
   selectedIds: string[];
+  selectedDate: number | null;
 }
 
-const PlaybackView: React.FC<PlaybackViewProps> = ({ cameras, selectedIds }) => {
+const PlaybackView: React.FC<PlaybackViewProps> = ({ cameras, selectedIds, selectedDate }) => {
   const selectedCameras = cameras.filter(cam => selectedIds.includes(cam.id));
+  const dateStr = selectedDate ? `2024-05-${selectedDate.toString().padStart(2, '0')}` : '2024-05-20';
 
   const getGridClass = () => {
     const count = selectedCameras.length;
@@ -22,19 +24,17 @@ const PlaybackView: React.FC<PlaybackViewProps> = ({ cameras, selectedIds }) => 
 
   return (
     <div className="flex-1 flex flex-col bg-black overflow-hidden">
-      {/* Playback Video Grid */}
       <div className="flex-1 p-2 relative flex flex-col">
         {selectedCameras.length > 0 ? (
           <div className={`grid gap-2 h-full ${getGridClass()}`}>
             {selectedCameras.map(cam => (
               <div key={cam.id} className="relative bg-[#0a0a0a] border border-[#222] rounded overflow-hidden group shadow-lg">
                 <img 
-                  src={`https://picsum.photos/seed/playback-${cam.id}/800/450`} 
+                  src={`https://picsum.photos/seed/playback-${cam.id}-${selectedDate}/800/450`} 
                   className="w-full h-full object-cover opacity-60 grayscale-[0.3]"
                   alt={cam.name}
                 />
                 
-                {/* Header Overlay */}
                 <div className="absolute top-2 left-2 right-2 flex justify-between items-start z-10">
                     <div className="bg-black/70 px-2 py-1 rounded border border-white/10 flex items-center space-x-2 backdrop-blur-sm">
                       <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
@@ -45,7 +45,6 @@ const PlaybackView: React.FC<PlaybackViewProps> = ({ cameras, selectedIds }) => 
                     </div>
                 </div>
 
-                {/* Event Center Overlay */}
                 {cam.status === CameraStatus.ALERT && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="p-12 border-2 border-red-600/20 rounded-full animate-pulse">
@@ -54,12 +53,10 @@ const PlaybackView: React.FC<PlaybackViewProps> = ({ cameras, selectedIds }) => 
                     </div>
                 )}
                 
-                {/* Timestamp Overlay */}
                 <div className="absolute bottom-2 right-2 font-mono text-[9px] text-white/50 bg-black/40 px-2 rounded border border-white/5">
-                   2024-05-20 10:52:45
+                   {dateStr} 10:52:45
                 </div>
 
-                {/* Grid Overlay for NVR feel */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/grid-me.png')]"></div>
               </div>
             ))}
@@ -82,8 +79,7 @@ const PlaybackView: React.FC<PlaybackViewProps> = ({ cameras, selectedIds }) => 
         )}
       </div>
 
-      {/* Multi-Track Fire Timeline - Linked to selectedIds */}
-      <Timeline isMultiTrack cameras={cameras} selectedIds={selectedIds} />
+      <Timeline isMultiTrack cameras={cameras} selectedIds={selectedIds} activeDate={dateStr} />
     </div>
   );
 };

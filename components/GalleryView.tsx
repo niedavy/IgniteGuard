@@ -1,19 +1,22 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { FireEvent, Camera } from '../types';
-import { Search, Filter, Calendar as CalendarIcon, Download, Maximize2, ShieldAlert, Thermometer, Wind, Loader2 } from 'lucide-react';
+import { Search, Download, Maximize2, ShieldAlert, Loader2 } from 'lucide-react';
 
 interface GalleryViewProps {
   cameras: Camera[];
   selectedCameraIds: string[];
+  selectedDate: number | null;
 }
 
 // Helper to generate mock data for performance testing
 const generateMockEvents = (count: number, cameras: Camera[]): FireEvent[] => {
+  const eventDays = [3, 12, 20, 21, 28];
   return Array.from({ length: count }).map((_, i) => {
     const cam = cameras[Math.floor(Math.random() * cameras.length)];
-    const date = new Date();
-    date.setMinutes(date.getMinutes() - i * 5); // 5 mins interval
+    const date = new Date(2024, 4, eventDays[Math.floor(Math.random() * eventDays.length)]);
+    date.setHours(Math.floor(Math.random() * 24));
+    date.setMinutes(Math.floor(Math.random() * 60));
     
     return {
       id: `evt-${i}`,
@@ -57,22 +60,41 @@ const EventCard = React.memo(({ event }: { event: FireEvent }) => (
   </div>
 ));
 
-const GalleryView: React.FC<GalleryViewProps> = ({ cameras, selectedCameraIds }) => {
+const GalleryView: React.FC<GalleryViewProps> = ({ cameras, selectedCameraIds, selectedDate }) => {
   const [allEvents] = useState(() => generateMockEvents(2000, cameras));
   const [visibleCount, setVisibleCount] = useState(40);
   const [loading, setLoading] = useState(false);
   const observerTarget = useRef(null);
 
   const filteredEvents = useMemo(() => {
-    if (selectedCameraIds.length === 0) return allEvents;
-    return allEvents.filter(e => selectedCameraIds.includes(e.cameraId));
-  }, [allEvents, selectedCameraIds]);
+    let list = allEvents;
+    
+    // Filter by cameras
+    if (selectedCameraIds.length > 0) {
+      list = list.filter(e => selectedCameraIds.includes(e.cameraId));
+    }
+    
+    // Filter by date
+    if (selectedDate !== null) {
+      list = list.filter(e => {
+        const dateStr = e.timestamp.split(', ')[0];
+        const dayPart = dateStr.split('/')[1]; // Assumes M/D/YYYY
+        return parseInt(dayPart) === selectedDate;
+      });
+    }
+    
+    return list;
+  }, [allEvents, selectedCameraIds, selectedDate]);
 
   const displayedEvents = useMemo(() => {
     return filteredEvents.slice(0, visibleCount);
   }, [filteredEvents, visibleCount]);
 
-  // Group events by hour for better readability
+  // Reset pagination when filter changes
+  useEffect(() => {
+    setVisibleCount(40);
+  }, [selectedCameraIds, selectedDate]);
+
   const groupedEvents = useMemo(() => {
     const groups: Record<string, FireEvent[]> = {};
     displayedEvents.forEach(event => {
@@ -114,17 +136,21 @@ const GalleryView: React.FC<GalleryViewProps> = ({ cameras, selectedCameraIds })
 
   return (
     <div className="flex-1 flex flex-col bg-[#0a0a0a] overflow-hidden">
-      {/* Gallery Header */}
       <div className="h-12 bg-[#1a1a1a] border-b border-[#333] flex items-center justify-between px-4 shrink-0 shadow-md">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <ShieldAlert size={18} className="text-red-500" />
-            <h2 className="text-sm font-bold tracking-tight">AI INCIDENT LOGS</h2>
+            <h2 className="text-sm font-bold tracking-tight uppercase">AI Incident Logs</h2>
           </div>
           <div className="h-4 w-[1px] bg-[#333]"></div>
           <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-            Total Detections: {filteredEvents.length}
+            Matches: {filteredEvents.length}
           </span>
+          {selectedDate && (
+             <span className="bg-red-900/40 text-red-500 text-[9px] font-black px-2 py-0.5 rounded border border-red-500/20 uppercase tracking-tighter">
+               Date Focus: May {selectedDate}
+             </span>
+          )}
         </div>
 
         <div className="flex items-center space-x-3">
@@ -142,43 +168,45 @@ const GalleryView: React.FC<GalleryViewProps> = ({ cameras, selectedCameraIds })
         </div>
       </div>
 
-      {/* Main Grid Area */}
       <div className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
-        {Object.entries(groupedEvents).map(([timeLabel, events]) => (
-          <div key={timeLabel} className="mb-8">
-            <div className="flex items-center gap-4 mb-4 sticky top-0 bg-[#0a0a0a] py-2 z-10">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] whitespace-nowrap">
-                {timeLabel}
-              </span>
-              <div className="h-[1px] flex-1 bg-gradient-to-r from-[#333] to-transparent"></div>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-              {events.map(event => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
+        {filteredEvents.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center opacity-20">
+             <ShieldAlert size={80} />
+             <span className="mt-4 font-black uppercase tracking-[0.4em]">No Logs Match Search</span>
           </div>
-        ))}
+        ) : (
+          Object.entries(groupedEvents).map(([timeLabel, events]) => (
+            <div key={timeLabel} className="mb-8">
+              <div className="flex items-center gap-4 mb-4 sticky top-0 bg-[#0a0a0a] py-2 z-10">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] whitespace-nowrap">
+                  {timeLabel}
+                </span>
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-[#333] to-transparent"></div>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                {events.map(event => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+            </div>
+          ))
+        )}
 
-        {/* Loading Indicator & Observer Target */}
         <div ref={observerTarget} className="py-10 flex flex-col items-center justify-center text-gray-600 gap-2">
           {loading ? (
             <>
               <Loader2 size={24} className="animate-spin text-blue-500" />
               <span className="text-[10px] uppercase font-bold tracking-widest">Fetching next batch...</span>
             </>
-          ) : visibleCount >= filteredEvents.length ? (
-            <span className="text-[10px] uppercase font-bold tracking-widest opacity-30">End of Incident History</span>
+          ) : visibleCount >= filteredEvents.length && filteredEvents.length > 0 ? (
+            <span className="text-[10px] uppercase font-bold tracking-widest opacity-30">End of Result Set</span>
           ) : null}
         </div>
       </div>
 
-      {/* Gallery Stats Bar */}
       <div className="h-8 bg-[#111] border-t border-[#333] flex items-center px-4 justify-between shrink-0">
-        <div className="flex space-x-4">
-           {/* Labels removed per request */}
-        </div>
+        <div className="flex space-x-4"></div>
         <div className="text-[9px] text-gray-600 uppercase font-bold">
           AI Confidence: High (`{'>'}`85%)
         </div>

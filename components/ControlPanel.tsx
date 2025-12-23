@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
-// Fix: Import ViewType from '../types' as it is defined and exported there, not in '../App'.
+import React from 'react';
 import { Camera, LayoutType, ViewType } from '../types';
-import { ChevronDown, Info, Shield, Bookmark, Trash2, Sliders, Volume2, Maximize, Search, Calendar as CalendarIcon, Filter, ShieldAlert } from 'lucide-react';
+import { ChevronDown, Shield, Trash2, Sliders, Search, ShieldAlert } from 'lucide-react';
 import Calendar from './Calendar';
 
 interface ControlPanelProps {
@@ -10,6 +9,8 @@ interface ControlPanelProps {
   layout: LayoutType;
   viewMode?: ViewType;
   onLayoutChange: (layout: LayoutType) => void;
+  selectedDate: number | null;
+  onDateSelect: (date: number | null) => void;
 }
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -24,9 +25,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
   </div>
 );
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ camera, layout, viewMode = 'monitor', onLayoutChange }) => {
-  const [selectedDay, setSelectedDay] = useState(20);
-
+const ControlPanel: React.FC<ControlPanelProps> = ({ camera, layout, viewMode = 'monitor', onLayoutChange, selectedDate, onDateSelect }) => {
   return (
     <div className="flex flex-col h-full text-[11px] select-none">
       <div className="flex bg-[#252525] p-1 gap-1">
@@ -80,7 +79,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ camera, layout, viewMode = 
           <>
             <Section title="Event Calendar">
                <div className="mt-2">
-                  <Calendar selectedDate={selectedDay} onDateSelect={setSelectedDay} />
+                  <Calendar selectedDate={selectedDate || 0} onDateSelect={onDateSelect} />
                </div>
             </Section>
 

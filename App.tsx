@@ -40,6 +40,7 @@ const App: React.FC = () => {
   const [selectedCameraId, setSelectedCameraId] = useState<string>('1');
   
   const [selectedSecondaryIds, setSelectedSecondaryIds] = useState<string[]>(() => INITIAL_CAMERAS.map(c => c.id));
+  const [selectedDate, setSelectedDate] = useState<number | null>(null);
   
   const [layout, setLayout] = useState<LayoutType>('2x2');
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,16 +50,6 @@ const App: React.FC = () => {
 
   const alertCameras = useMemo(() => cameras.filter(c => c.status === CameraStatus.ALERT), [cameras]);
   const selectedCamera = cameras.find(c => c.id === (currentView === 'monitor' ? selectedCameraId : selectedSecondaryIds[0])) || cameras[0];
-
-  const getPageSize = (l: LayoutType) => {
-    switch (l) {
-      case '1x1': return 1;
-      case '2x2': return 4;
-      case '3x3': return 9;
-      case '1P+3': return 4;
-      default: return 4;
-    }
-  };
 
   const handleSelect = (id: string) => {
     if (currentView === 'monitor') {
@@ -79,7 +70,16 @@ const App: React.FC = () => {
     }
   };
 
-  // Requirement: Change layout while maintaining visibility of the selected camera
+  const getPageSize = (l: LayoutType) => {
+    switch (l) {
+      case '1x1': return 1;
+      case '2x2': return 4;
+      case '3x3': return 9;
+      case '1P+3': return 4;
+      default: return 4;
+    }
+  };
+
   const handleLayoutChange = (newLayout: LayoutType) => {
     setLayout(newLayout);
     if (currentView === 'monitor') {
@@ -130,6 +130,7 @@ const App: React.FC = () => {
           <PlaybackView 
             cameras={cameras}
             selectedIds={selectedSecondaryIds}
+            selectedDate={selectedDate}
           />
         );
       case 'gallery':
@@ -137,6 +138,7 @@ const App: React.FC = () => {
           <GalleryView 
             cameras={cameras} 
             selectedCameraIds={selectedSecondaryIds} 
+            selectedDate={selectedDate}
           />
         );
       default:
@@ -181,6 +183,8 @@ const App: React.FC = () => {
               layout={layout} 
               viewMode={currentView === 'monitor' ? 'monitor' : 'playback'}
               onLayoutChange={handleLayoutChange}
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
             />
           </div>
         </div>

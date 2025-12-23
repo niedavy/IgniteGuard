@@ -6,10 +6,11 @@ import { Camera } from '../types';
 interface TimelineProps {
   isMultiTrack?: boolean;
   cameras?: Camera[];
-  selectedIds?: string[]; // Prop to link with sidebar checkboxes
+  selectedIds?: string[];
+  activeDate?: string;
 }
 
-const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [], selectedIds }) => {
+const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [], selectedIds, activeDate = '2024/05/20' }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Mock: IDs of cameras that have historical fire/smoke alarms on the selected date
@@ -18,23 +19,16 @@ const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [],
   const filteredCameras = useMemo(() => {
     return cameras.filter(cam => {
       const matchesSearch = cam.name.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Rule 1: Must have a fire alarm
       const hasAlarm = camerasWithFireAlarms.includes(cam.id);
-      
-      // Rule 2: Must be selected in the sidebar
       const isSelected = selectedIds ? selectedIds.includes(cam.id) : true;
-      
       return matchesSearch && hasAlarm && isSelected;
     });
   }, [cameras, searchQuery, selectedIds]);
 
-  // Track height is now fixed to h-10 as requested
   const getTrackHeightClass = () => 'h-10';
 
   const renderEventBars = (id: string) => (
     <>
-      {/* Visual representation of fire/smoke incident segments */}
       <div className="absolute top-0 bottom-0 left-[15%] w-[1%] bg-red-600/80 shadow-[0_0_8px_#dc2626]"></div>
       <div className="absolute top-0 bottom-0 left-[32%] w-[2.5%] bg-red-600 shadow-[0_0_10px_#dc2626]"></div>
       {id === '3' && (
@@ -49,13 +43,12 @@ const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [],
       ${isMultiTrack ? 'max-h-[40%] h-auto min-h-[140px]' : 'h-28'} 
       bg-[#1a1a1a] border-t border-[#333] flex flex-col select-none transition-all duration-300 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-40
     `}>
-      {/* Enhanced Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-[#252525] bg-[#1d1d1d] shrink-0">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-2">
              <ShieldAlert size={14} className="text-red-500" />
              <span className="text-gray-400 uppercase tracking-widest text-[10px] font-bold">Fire Incident Timeline</span>
-             <span className="text-blue-500 text-[10px] font-mono">2024/05/20</span>
+             <span className="text-blue-500 text-[10px] font-mono">{activeDate}</span>
           </div>
 
           {isMultiTrack && (
@@ -65,7 +58,7 @@ const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [],
                 <input 
                   type="text" 
                   placeholder="Filter alerted cameras..." 
-                  className="bg-black/40 border border-[#333] rounded px-7 py-1 text-[10px] focus:outline-none focus:border-blue-500 w-40"
+                  className="bg-black/40 border border-[#333] rounded-full px-7 py-1 text-[10px] focus:outline-none focus:border-blue-500 w-40"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -83,7 +76,6 @@ const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [],
       </div>
 
       <div className="flex-1 relative flex flex-col group overflow-hidden">
-        {/* Sticky Hour Markers */}
         <div className="flex h-6 border-b border-[#252525] bg-black/40 shrink-0 z-20">
            <div className="w-40 shrink-0 border-r border-[#252525]"></div>
            <div className="flex-1 flex">
@@ -95,9 +87,7 @@ const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [],
            </div>
         </div>
 
-        {/* Scrollable Tracks Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden relative bg-[#0a0a0a]">
-          {/* Vertical Time Indicator Lines */}
           <div className="absolute inset-0 pointer-events-none flex h-full">
             <div className="w-40 shrink-0"></div>
             {Array.from({ length: 12 }).map((_, i) => (
@@ -145,7 +135,6 @@ const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [],
             )}
           </div>
 
-          {/* Time Playhead - Positioned relative to tracks area height */}
           {filteredCameras.length > 0 && (
             <div className="absolute top-0 bottom-0 left-[55%] w-[1px] bg-red-500 z-30 pointer-events-none shadow-[0_0_15px_rgba(239,68,68,1)]">
                 <div className="absolute top-0 -left-1.5 w-3 h-6 bg-red-600 border border-white/20 flex flex-col items-center justify-center rounded-b-sm">
@@ -159,7 +148,6 @@ const Timeline: React.FC<TimelineProps> = ({ isMultiTrack = false, cameras = [],
         </div>
       </div>
       
-      {/* Bottom Status Summary */}
       <div className="h-6 w-full bg-[#080808] border-t border-[#333] shrink-0 flex items-center px-4 justify-between">
          <span className="text-[8px] text-gray-600 uppercase font-bold tracking-[0.3em]">
            Playback Matrix Monitoring System
